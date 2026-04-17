@@ -153,20 +153,6 @@ class AVLTree:
             lista.append(node.value)
             self._inorder_recursive(node.right, lista)
 
-    # Visualización simple
-    def display(self):
-        """Imprime el árbol girado 90° a la izquierda para ver su estructura."""
-        self._display_recursive(self.root, 0)
-
-    def _display_recursive(self, node, level):
-        if node:
-            # Imprime primero el subárbol derecho
-            self._display_recursive(node.right, level + 1)
-            # Imprime el nodo actual con indentación
-            print("    " * level + f"{node.value} (h={node.height}, bf={getBalance(node)})")
-            # Imprime el subárbol izquierdo
-            self._display_recursive(node.left, level + 1)
-
 
 avl = AVLTree()
 values_to_insert = [10, 20, 30, 40, 50, 25]
@@ -175,16 +161,13 @@ print("Insertando valores:", values_to_insert)
 for val in values_to_insert:
     avl.insert(val)
 
-print("\n--- Árbol después de las inserciones ---")
-avl.display()
+print("\nÁrbol después de las inserciones:")
 print("\nRecorrido in-order:", avl.inorder())
 
 print("\nEliminando el valor 20...")
 avl.delete(20)
-avl.display()
 print("\nIn-order después de eliminar 20:", avl.inorder())
 
 print("\nEliminando el valor 30...")
 avl.delete(30)
-avl.display()
 print("\nIn-order después de eliminar 30:", avl.inorder())
