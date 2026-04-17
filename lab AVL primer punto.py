@@ -7,7 +7,6 @@ class Node:
         self.right = None
         self.height = 1 
 
-# ---------- Funciones auxiliares (igual que tenías) ----------
 def getHeight(node):
     if not node:
         return 0
@@ -22,7 +21,6 @@ def updateHeight(node):
     if node:
         node.height = 1 + max(getHeight(node.left), getHeight(node.right))
 
-# ---------- Rotaciones (igual que tenías) ----------
 def rotate_right(y):
     x = y.left
     T2 = x.right
@@ -47,17 +45,14 @@ def rotate_left(x):
 
     return y
 
-# ---------- Clase AVLTree ----------
 class AVLTree:
     def __init__(self):
         self.root = None
 
-    # ========== INSERCIÓN ==========
     def insert(self, value):
         self.root = self._insert_recursive(self.root, value)
 
     def _insert_recursive(self, node, value):
-        # 1. Inserción BST normal
         if not node:
             return Node(value)
 
@@ -66,35 +61,32 @@ class AVLTree:
         elif value > node.value:
             node.right = self._insert_recursive(node.right, value)
         else:
-            return node   # no se permiten duplicados
-        
-        # 2. Actualizar altura de este nodo ancestro
+            return node
+
         updateHeight(node)
-        
-        # 3. Obtener el factor de balance y rebalancear si es necesario
         balance = getBalance(node)
 
-        # Caso Izquierda-Izquierda
+        # Izquierda-Izquierda
         if balance > 1 and getBalance(node.left) >= 0:
             return rotate_right(node)
         
-        # Caso Izquierda-Derecha
+        # Izquierda-Derecha
         if balance > 1 and getBalance(node.left) < 0:
             node.left = rotate_left(node.left)
             return rotate_right(node)
         
-        # Caso Derecha-Derecha
+        # Derecha-Derecha
         if balance < -1 and getBalance(node.right) <= 0:
             return rotate_left(node)
         
-        # Caso Derecha-Izquierda
+        # Derecha-Izquierda
         if balance < -1 and getBalance(node.right) > 0:
             node.right = rotate_right(node.right)
             return rotate_left(node)
         
-        return node   # ya estaba balanceado
+        return node
 
-    # ========== ELIMINACIÓN ==========
+    # Eliminación
     def delete(self, value):
         self.root = self._delete_recursive(self.root, value)
 
@@ -108,7 +100,6 @@ class AVLTree:
         elif value > node.value:
             node.right = self._delete_recursive(node.right, value)
         else:
-            # Nodo encontrado
             if not node.left:
                 return node.right
             elif not node.right:
@@ -120,25 +111,22 @@ class AVLTree:
                 node.right = self._delete_recursive(node.right, sucesor.value)
         
         if not node:
-            return node   # si el nodo fue eliminado y no hay reemplazo
-
-        # 2. Actualizar altura
+            return node
+            
         updateHeight(node)
-        
-        # 3. Rebalancear
         balance = getBalance(node)
 
-        # Caso Izquierda-Izquierda
+        # Izquierda-Izquierda
         if balance > 1 and getBalance(node.left) >= 0:
             return rotate_right(node)
-        # Caso Izquierda-Derecha
+        # Izquierda-Derecha
         if balance > 1 and getBalance(node.left) < 0:
             node.left = rotate_left(node.left)
             return rotate_right(node)
-        # Caso Derecha-Derecha
+        # Derecha-Derecha
         if balance < -1 and getBalance(node.right) <= 0:
             return rotate_left(node)
-        # Caso Derecha-Izquierda
+        # Derecha-Izquierda
         if balance < -1 and getBalance(node.right) > 0:
             node.right = rotate_right(node.right)
             return rotate_left(node)
