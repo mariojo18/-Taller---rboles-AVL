@@ -1,168 +1,160 @@
-class Nodo:
-    """Nodo del árbol AVL, similar a un nodo de lista enlazada pero con dos hijos."""
-    def __init__(self, dato):
-        self.dato = dato
-        self.izq = None
-        self.der = None
-        self.altura = 1   # hoja = altura 1
+import sys
+class Node:
+    def __init__(self, value):
+        self.value = value
+        self.left = None
+        self.right = None
+        self.height = 1
 
-
-class AVL:
+class AVLTree:
     def __init__(self):
-        self.raiz = None
+        self.root = None
 
-    # ---------- Métodos auxiliares simples ----------
-    def altura(self, nodo):
-        """Devuelve la altura de un nodo (0 si es None)."""
-        return nodo.altura if nodo else 0
+    # --- Funciones Auxiliares ---
+    def _get_height(self, node):
+        return node.height if node else 0
 
-    def factor_balance(self, nodo):
-        """Factor de balance = altura izq - altura der."""
-        if not nodo:
+    def _get_balance(self, node):
+        if not node:
             return 0
-        return self.altura(nodo.izq) - self.altura(nodo.der)
+        return self._get_height(node.left) - self._get_height(node.right)
 
-    def actualizar_altura(self, nodo):
-        """Recalcula la altura a partir de las alturas de los hijos."""
-        nodo.altura = 1 + max(self.altura(nodo.izq), self.altura(nodo.der))
+    def _update_height(self, node):
+        if node:
+            node.height = 1 + max(self._get_height(node.left), self._get_height(node.right))
 
-    # ---------- Rotaciones (similares a reordenar punteros en listas) ----------
-    def rotar_derecha(self, y):
-        x = y.izq
-        temp = x.der
-
-        # Rotación
-        x.der = y
-        y.izq = temp
-
-        # Actualizar alturas (primero el que quedó abajo)
-        self.actualizar_altura(y)
-        self.actualizar_altura(x)
+    # --- Rotaciones ---
+    def _rotate_right(self, y):
+        x = y.left
+        T2 = x.right
+        x.right = y
+        y.left = T2
+        self._update_height(y)
+        self._update_height(x)
         return x
 
-    def rotar_izquierda(self, x):
-        y = x.der
-        temp = y.izq
-
-        y.izq = x
-        x.der = temp
-
-        self.actualizar_altura(x)
-        self.actualizar_altura(y)
+    def _rotate_left(self, x):
+        y = x.right
+        T2 = y.left
+        y.left = x
+        x.right = T2
+        self._update_height(x)
+        self._update_height(y)
         return y
 
-    # ---------- Balanceo automático ----------
-    def balancear(self, nodo):
-        """Aplica la rotación que corresponda si el nodo está desbalanceado."""
-        fb = self.factor_balance(nodo)
+    # --- Inserción ---
+    def insert(self, value):
+        self.root = self._insert_recursive(self.root, value)
 
-        # Caso izquierda - izquierda
-        if fb > 1 and self.factor_balance(nodo.izq) >= 0:
-            return self.rotar_derecha(nodo)
-
-        # Caso derecha - derecha
-        if fb < -1 and self.factor_balance(nodo.der) <= 0:
-            return self.rotar_izquierda(nodo)
-
-        # Caso izquierda - derecha
-        if fb > 1 and self.factor_balance(nodo.izq) < 0:
-            nodo.izq = self.rotar_izquierda(nodo.izq)
-            return self.rotar_derecha(nodo)
-
-        # Caso derecha - izquierda
-        if fb < -1 and self.factor_balance(nodo.der) > 0:
-            nodo.der = self.rotar_derecha(nodo.der)
-            return self.rotar_izquierda(nodo)
-
-        return nodo
-
-    # ---------- Inserción (recursiva, como en un BST) ----------
-    def insertar(self, dato):
-        """Inserta un nuevo dato y mantiene el balance."""
-        self.raiz = self._insertar(self.raiz, dato)
-
-    def _insertar(self, nodo, dato):
-        if not nodo:
-            return Nodo(dato)
-
-        if dato < nodo.dato:
-            nodo.izq = self._insertar(nodo.izq, dato)
-        elif dato > nodo.dato:
-            nodo.der = self._insertar(nodo.der, dato)
+    def _insert_recursive(self, node, value):
+        if not node:
+            return Node(value)
+        
+        if value < node.value:
+            node.left = self._insert_recursive(node.left, value)
+        elif value > node.value:
+            node.right = self._insert_recursive(node.right, value)
         else:
-            return nodo   # no duplicados
+            return node # No se permiten duplicados
 
-        self.actualizar_altura(nodo)
-        return self.balancear(nodo)
+        self._update_height(node)
+        return self._rebalance(node)
 
-    # ---------- Eliminación sencilla ----------
-    def eliminar(self, dato):
-        self.raiz = self._eliminar(self.raiz, dato)
+    # --- Eliminación ---
+    def delete(self, value):
+        self.root = self._delete_recursive(self.root, value)
 
-    def _minimo(self, nodo):
-        while nodo.izq:
-            nodo = nodo.izq
-        return nodo
-
-    def _eliminar(self, nodo, dato):
-        if not nodo:
-            return None
-
-        if dato < nodo.dato:
-            nodo.izq = self._eliminar(nodo.izq, dato)
-        elif dato > nodo.dato:
-            nodo.der = self._eliminar(nodo.der, dato)
+    def _delete_recursive(self, node, value):
+        if not node:
+            return node
+        
+        if value < node.value:
+            node.left = self._delete_recursive(node.left, value)
+        elif value > node.value:
+            node.right = self._delete_recursive(node.right, value)
         else:
-            # Nodo encontrado
-            if not nodo.izq:
-                return nodo.der
-            elif not nodo.der:
-                return nodo.izq
-            else:
-                sucesor = self._minimo(nodo.der)
-                nodo.dato = sucesor.dato
-                nodo.der = self._eliminar(nodo.der, sucesor.dato)
+            # Nodo encontrado: Caso con uno o ningún hijo
+            if not node.left:
+                return node.right
+            elif not node.right:
+                return node.left
+            
+            # Caso con dos hijos: Obtener el sucesor (mínimo en el subárbol derecho)
+            temp = self._get_min_value_node(node.right)
+            node.value = temp.value
+            node.right = self._delete_recursive(node.right, temp.value)
 
-        self.actualizar_altura(nodo)
-        return self.balancear(nodo)
+        if not node:
+            return node
 
-    # ---------- Recorrido in-order (como lista ordenada) ----------
+        self._update_height(node)
+        return self._rebalance(node)
+
+    # --- Lógica de Rebalanceo ---
+    def _rebalance(self, node):
+        balance = self._get_balance(node)
+
+        # Caso Izquierda-Izquierda o Izquierda-Derecha
+        if balance > 1:
+            if self._get_balance(node.left) < 0:
+                node.left = self._rotate_left(node.left) # Rotación doble
+            return self._rotate_right(node)
+
+        # Caso Derecha-Derecha o Derecha-Izquierda
+        if balance < -1:
+            if self._get_balance(node.right) > 0:
+                node.right = self._rotate_right(node.right) # Rotación doble
+            return self._rotate_left(node)
+
+        return node
+
+    def _get_min_value_node(self, node):
+        current = node
+        while current.left:
+            current = current.left
+        return current
+
+    # --- Recorrido In-order ---
     def in_order(self):
-        elementos = []
-        self._in_order(self.raiz, elementos)
-        return elementos
+        elements = []
+        self._in_order_recursive(self.root, elements)
+        return elements
 
-    def _in_order(self, nodo, lista):
-        if nodo:
-            self._in_order(nodo.izq, lista)
-            lista.append(nodo.dato)
-            self._in_order(nodo.der, lista)
+    def _in_order_recursive(self, node, elements):
+        if node:
+            self._in_order_recursive(node.left, elements)
+            elements.append(node.value)
+            self._in_order_recursive(node.right, elements)
 
-    # ---------- Visualización simple ----------
-    def mostrar(self):
-        """Imprime el árbol de lado (rotado 90°) para ver su estructura."""
-        self._mostrar(self.raiz, 0)
+    # --- Visualización ---
+    def display(self, node=None, level=0, prefix="Raíz: "):
+        if node is None and level == 0:
+            node = self.root
+        if node:
+            print(" " * (level * 4) + prefix + f"[{node.value}] (Alt:{node.height}, Bal:{self._get_balance(node)})")
+            if node.left or node.right:
+                if node.left:
+                    self.display(node.left, level + 1, "L--- ")
+                else:
+                    print(" " * ((level + 1) * 4) + "L--- None")
+                if node.right:
+                    self.display(node.right, level + 1, "R--- ")
+                else:
+                    print(" " * ((level + 1) * 4) + "R--- None")
 
-    def _mostrar(self, nodo, nivel):
-        if nodo:
-            self._mostrar(nodo.der, nivel + 1)
-            print("    " * nivel + f"{nodo.dato} (h={nodo.altura})")
-            self._mostrar(nodo.izq, nivel + 1)
+# --- Pruebas del sistema ---
+avl = AVLTree()
+valores =  [15, 10, 20, 8, 12, 25, 5]
 
+print("Insertando valores:", valores)
+for val in valores:
+    avl.insert(val)
 
-# ---------- Prueba rápida ----------
-if __name__ == "__main__":
-    arbol = AVL()
-    datos = [15, 10, 20, 8, 12, 25, 5]
+print("\nEstructura del árbol después de inserciones:")
+avl.display()
 
-    print("Insertando:", datos)
-    for num in datos:
-        arbol.insertar(num)
+print("\nRecorrido In-order (ordenado):", avl.in_order())
 
-    arbol.mostrar()
-    print("In-order:", arbol.in_order())
-
-    print("\nEliminando 10...")
-    arbol.eliminar(10)
-    arbol.mostrar()
-    print("In-order:", arbol.in_order())  
+print("\nEliminando el valor 30...")
+avl.delete(30)
+avl.display()
