@@ -7,43 +7,41 @@ class Nodo:
         self.right = None
         self.height = 1 
 
-    def getHeight(node):
-        if not node:
-            return 0
-        return node.height
+def getHeight(node):
+    if not node:
+        return 0
+    return node.height
     
-    def getBalance(node):
-        if not node:
-            return 0
-        return getHeight(node.left) - getHeight(node.right)
+def getBalance(node):
+    if not node:
+        return 0
+    return getHeight(node.left) - getHeight(node.right)
     
-    def updateHeight(node):
-        if node:
-            node.height = 1 + max(getHeight(node.left), getHeight(node.right))
+def updateHeight(node):
+    if node:
+        node.height = 1 + max(getHeight(node.left), getHeight(node.right))
     
-    def rotate_right(y):
-        x = y.left
-        T2 = x.right
+def rotate_right(y):
+    x = y.left
+    T2 = x.right
     
-        x.right = y
-        y.left = T2
+    x.right = y
+    y.left = T2
     
-        updateHeight(y)
-        updateHeight(x)
-    
-        return x
+    updateHeight(y)
+    updateHeight(x)
+    return x
 
-    def rotate_left(x):
-        y = x.right
-        T2 = y.left
+def rotate_left(x):
+    y = x.right
+    T2 = y.left
     
-        y.left = x
-        x.right = T2
+    y.left = x
+    x.right = T2
     
-        updateHeight(x)
-        updateHeight(y)
-    
-        return y
+    updateHeight(x)
+    updateHeight(y)
+    return y
 
 class AVLTree:
     def __init__(self):
